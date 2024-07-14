@@ -114,6 +114,7 @@ const onSubmit = async () => {
 
   try {
     // can also be run on localhost:3000 if you have the backend running locally
+    // with the current setup, the request might take a little longer to complete
     const response = await axios.post('https://three205-backend.onrender.com/api/users/search', {
       email: email.value,
       number: rawInput.value

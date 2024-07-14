@@ -1,5 +1,7 @@
-# Vue 3 + Vite
+## 3205 Task (Frontend)
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+In this project, I used Vue 3 to create a simple frontend for the 3205 Task. For styling, I mainly used 
+Tailwind CSS. You can view the project on netlify: https://3205-frontend.netlify.app/
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+There's also a backend for this project, which is a simple REST API created using Express.js. You can view the 
+backend project on GitHub: https://github.com/Abulkosim/3205-backend
