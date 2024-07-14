@@ -8,17 +8,29 @@
         <label for="email" class="block mb-1.5 text-base font-medium text-gray-300">Email
           <span class="text-red-600 select-none">*</span></label>
         <input v-model="email" type="email" name="email" id="email" autocomplete="off"
-               class="h-11 border-2 border-transparent text-base transition-all duration-300 rounded-md outline-none focus:ring-blue-500 focus:border-gray-500 block w-full p-2.5 bg-gray-600 text-gray-300"
-               placeholder="Enter email address" required/>
+               class="h-11 border-2 border-transparent text-base transition-all duration-300 rounded-md outline-none focus:ring-blue-500 focus:border-gray-500 block w-full p-2.5 pl-3 bg-gray-600 text-gray-300"
+               :class="{ 'border-red-500 text-red-500 focus:border-red-500 focus:text-red-500': emailError }"
+               placeholder="Enter email address"
+               required
+               @blur="validateEmail"/>
+        <div class="h-1 mt-1">
+          <p v-if="emailError" class="text-sm text-red-500">{{ emailError }}</p>
+        </div>
       </div>
       <div>
         <label for="number" class="block mb-1.5 text-base font-medium text-gray-300">Number</label>
-        <input v-model="maskedInput" @input="applyMask" type="text" name="number" id="number" placeholder="XX-XX-XX"
+        <input v-model="maskedInput" @blur="validateNumber" @input="applyMask" type="text" name="number" id="number"
+               placeholder="XX-XX-XX"
                autocomplete="off"
-               class="h-11 border-2 border-transparent text-base transition-all duration-300 rounded-md outline-none focus:ring-blue-500 focus:border-gray-500 block w-full p-2.5 bg-gray-600 text-gray-300"
+               class="h-11 border-2 border-transparent text-base transition-all duration-300 rounded-md outline-none focus:ring-blue-500 focus:border-gray-500 block w-full p-2.5 pl-3 bg-gray-600 text-gray-300"
+               :class="{ 'border-red-500 text-red-500 focus:border-red-500 focus:text-red-500':
+               numberError }"
         />
+        <div class="h-1 mt-1">
+          <p v-if="emailError" class="text-sm text-red-500">{{ numberError }}</p>
+        </div>
       </div>
-      <button type="submit"
+      <button type="submit" :disabled="!isFormValid"
               class="flex items-center justify-center w-full h-11 text-gray-100 font-medium tracking-wide bg-blue-500 text-base hover:bg-blue-600 active:bg-blue-700 p-2.5 rounded-md outline-none transition-all duration-300">
         <span>{{ isLoading ? 'Searching...' : 'Search' }}</span>
       </button>
@@ -27,7 +39,7 @@
 </template>
 
 <script setup>
-import {ref, watch} from 'vue'
+import {computed, ref, watch} from 'vue'
 import axios from 'axios'
 
 const email = ref('');
@@ -36,7 +48,33 @@ const maskedInput = ref('');
 const isLoading = ref(false);
 let currentRequest = null;
 
+const emailError = ref('');
+const numberError = ref('');
+
 const emit = defineEmits(['setLoading', 'getResults'])
+
+const validateEmail = () => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email.value) {
+    emailError.value = 'Email is required';
+  } else if (!emailRegex.test(email.value)) {
+    emailError.value = 'Please enter a valid email address';
+  } else {
+    emailError.value = '';
+  }
+};
+
+const validateNumber = () => {
+  if (rawInput.value && rawInput.value.length !== 6) {
+    numberError.value = 'Number must be exactly 6 digits';
+  } else {
+    numberError.value = '';
+  }
+};
+
+const isFormValid = computed(() => {
+  return !emailError.value && !numberError.value && email.value !== '';
+});
 
 const applyMask = (event) => {
   let value = event.target.value.replace(/[^0-9]/g, '');
@@ -55,8 +93,15 @@ watch(rawInput, () => {
   applyMask({target: {value: rawInput.value}});
 });
 
+watch(email, validateEmail);
+watch(rawInput, validateNumber);
 
 const onSubmit = async () => {
+  validateEmail();
+  validateNumber();
+
+  if (!isFormValid.value) return;
+
   if (currentRequest) {
     currentRequest.cancel();
   }
@@ -68,6 +113,7 @@ const onSubmit = async () => {
   currentRequest = source;
 
   try {
+    // can also be run on localhost:3000 if you have the backend running locally
     const response = await axios.post('https://three205-backend.onrender.com/api/users/search', {
       email: email.value,
       number: rawInput.value
